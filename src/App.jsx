@@ -1,33 +1,54 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState , useReducer } from 'react'
 import './App.css'
+import Todo from './components/Todo'
+import {v4 as uuidv4} from "uuid"
 
 function App() {
-  const [count, setCount] = useState(0)
+  const reducer=(state , action)=>{
+      switch (action.type) {
+        case "add":
+          return [...state, {name:action.payload.name, id: uuidv4(), completed: false }]
+          
+          break;
+
+          case "toggle": 
+            return state.map(todo=>{
+              if(todo.id===action.payload.id){
+                return {...todo, completed: !todo.completed}
+              }
+              return todo
+            })
+            break;
+
+            case "del": 
+              return state.filter(value=>value.id!==action.payload.id)
+              break;
+      
+        default: return state;
+          break;
+      }
+  }
+
+  const [name , setName]= useState("")
+  const [todos , dispatch] = useReducer(reducer, [])
+
+  const handleSubmit=()=>{
+    dispatch({type: "add" , payload:{name:name}})
+    setName("")
+  }
+
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+
+      <input type="text" value={name} onChange={(e)=>{setName(e.target.value)}} />
+      <button onClick={handleSubmit} >Submit</button>
+
+      {todos.map((value, index) => {
+        return <Todo value={value} key={index} dispatch={dispatch}></Todo>
+      })}
+   
+      
     </>
   )
 }
